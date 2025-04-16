@@ -1,0 +1,102 @@
+-- Script único que cria a UI e executa todo o sistema do "Roubar Banco"
+
+local player = game:GetService("Players").LocalPlayer
+local teleporting = false
+
+-- Posições
+local foraAreaVerde = Vector3.new(55.4002, 16.2101, 24.0499)
+local dentroAreaVerde = Vector3.new(46.6854, 16.3620, 24.3310)
+local dinheiro = Vector3.new(-593.9904, 31.3066, 348.1586)
+
+-- Criar a UI dinamicamente
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "RoubarBancoUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 100)
+frame.Position = UDim2.new(0.5, -150, 0.1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(0.7, 0, 1, 0)
+label.Position = UDim2.new(0, 0, 0, 0)
+label.Text = "Roubar Banco"
+label.TextColor3 = Color3.new(1, 1, 1)
+label.BackgroundTransparency = 1
+label.Font = Enum.Font.SourceSansBold
+label.TextScaled = true
+label.Parent = frame
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0.3, 0, 1, 0)
+button.Position = UDim2.new(0.7, 0, 0, 0)
+button.Text = "OFF"
+button.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+button.TextColor3 = Color3.new(1, 1, 1)
+button.Font = Enum.Font.SourceSansBold
+button.TextScaled = true
+button.Parent = frame
+
+-- Função de coleta
+local function iniciarColeta()
+	while teleporting do
+		-- Teleporta entre fora e dentro da área verde por 5 segundos
+		local startTime = tick()
+		while tick() - startTime < 5 and teleporting do
+			if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+				player.Character:MoveTo(foraAreaVerde)
+				wait(0.1)
+				player.Character:MoveTo(dentroAreaVerde)
+				wait(0.1)
+			end
+		end
+
+		-- Vai até o dinheiro
+		if not teleporting then break end
+		if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+			player.Character:MoveTo(dinheiro)
+		end
+
+		-- Simula segurar "E" por 3 segundos (visual opcional)
+		local holdE = Instance.new("BillboardGui")
+		holdE.Size = UDim2.new(0, 100, 0, 50)
+		holdE.StudsOffset = Vector3.new(0, 3, 0)
+		holdE.Adornee = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		holdE.AlwaysOnTop = true
+		holdE.Parent = screenGui
+
+		local text = Instance.new("TextLabel", holdE)
+		text.Size = UDim2.new(1, 0, 1, 0)
+		text.BackgroundTransparency = 1
+		text.TextScaled = true
+		text.Font = Enum.Font.SourceSansBold
+		text.TextColor3 = Color3.new(1, 1, 0)
+		text.Text = "Segurando E..."
+
+		for i = 1, 30 do
+			if not teleporting then break end
+			wait(0.1)
+		end
+
+		holdE:Destroy()
+
+		-- Recomeça o ciclo
+	end
+end
+
+-- Botão para ativar/desativar
+button.MouseButton1Click:Connect(function()
+	teleporting = not teleporting
+	if teleporting then
+		button.Text = "ON"
+		button.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+		coroutine.wrap(iniciarColeta)()
+	else
+		button.Text = "OFF"
+		button.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+	end
+end)
