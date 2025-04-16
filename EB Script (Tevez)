@@ -1,14 +1,14 @@
--- Script único que cria a UI e executa todo o sistema do "Roubar Banco"
-
 local player = game:GetService("Players").LocalPlayer
 local teleporting = false
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 
 -- Posições
 local foraAreaVerde = Vector3.new(55.4002, 16.2101, 24.0499)
 local dentroAreaVerde = Vector3.new(46.6854, 16.3620, 24.3310)
 local dinheiro = Vector3.new(-593.9904, 31.3066, 348.1586)
 
--- Criar a UI dinamicamente
+-- Criar UI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "RoubarBancoUI"
 screenGui.ResetOnSpawn = false
@@ -19,7 +19,14 @@ frame.Size = UDim2.new(0, 300, 0, 100)
 frame.Position = UDim2.new(0.5, -150, 0.1, 0)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.BorderSizePixel = 0
+frame.Draggable = true
+frame.Active = true
 frame.Parent = screenGui
+
+-- Cantos arredondados
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 15)
+corner.Parent = frame
 
 local label = Instance.new("TextLabel")
 label.Size = UDim2.new(0.7, 0, 1, 0)
@@ -41,7 +48,14 @@ button.Font = Enum.Font.SourceSansBold
 button.TextScaled = true
 button.Parent = frame
 
--- Função de coleta
+-- Função de clique automático
+local function clicar(x, y)
+	VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
+	wait(0.05)
+	VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
+end
+
+-- Sistema de Coleta
 local function iniciarColeta()
 	while teleporting do
 		-- Teleporta entre fora e dentro da área verde por 5 segundos
@@ -61,7 +75,7 @@ local function iniciarColeta()
 			player.Character:MoveTo(dinheiro)
 		end
 
-		-- Simula segurar "E" por 3 segundos (visual opcional)
+		-- Mostrar "Segurando E..."
 		local holdE = Instance.new("BillboardGui")
 		holdE.Size = UDim2.new(0, 100, 0, 50)
 		holdE.StudsOffset = Vector3.new(0, 3, 0)
@@ -77,14 +91,25 @@ local function iniciarColeta()
 		text.TextColor3 = Color3.new(1, 1, 0)
 		text.Text = "Segurando E..."
 
-		for i = 1, 30 do
-			if not teleporting then break end
-			wait(0.1)
-		end
+		-- Simular segurar E por 3 segundos
+		VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+		wait(3)
+		VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
 
 		holdE:Destroy()
 
-		-- Recomeça o ciclo
+		-- Clica onde está o mouse
+		local mouse = player:GetMouse()
+		clicar(mouse.X, mouse.Y)
+		wait(0.3)
+
+		-- Clica na posição fixa x=293 y=202
+		clicar(293, 202)
+		wait(0.3)
+
+		-- Clica na posição fixa x=-68 y=494
+		clicar(-68, 494)
+		wait(0.3)
 	end
 end
 
