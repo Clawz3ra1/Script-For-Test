@@ -7,6 +7,7 @@ local player = Players.LocalPlayer
 local foraVerde = Vector3.new(55.40021514892578, 16.210159301757812, 24.049936294555664)
 local dentroVerde = Vector3.new(46.685447692871094, 16.362083435058594, 24.331085205078125)
 local dinheiro = Vector3.new(-593.990478515625, 31.306697845458984, 348.15869140625)
+local compra = Vector3.new(-919.98876953125, 49.01209259033203, 584.4151000976562)
 
 local locaisJoalheria = {
 	Vector3.new(-125.17372131347656, 32.29037094116211, 263.8453063964844),
@@ -23,15 +24,23 @@ local teleportingBanco = false
 local teleportingJoalheria = false
 
 -- FUNÇÕES
-local function segurarETempo(segundos)
+local function clicarETempo(segundos)
+	-- Simula o clique da tecla "E"
 	VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-	wait(segundos)
+	wait(0.1)
 	VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+	wait(segundos)
 end
 
 local function iniciarBanco()
 	teleportingBanco = true
 	while teleportingBanco do
+		-- Vai até a localização "Compra" e clica E
+		player.Character:MoveTo(compra)
+		wait(1)
+		clicarETempo(5)  -- Clica na tecla E e espera 5 segundos
+		wait(5)
+
 		-- Coleta por 5 segundos
 		local t = tick()
 		while tick() - t < 5 and teleportingBanco do
@@ -46,7 +55,7 @@ local function iniciarBanco()
 		wait(1)
 		for i = 1, 4 do
 			if not teleportingBanco then break end
-			segurarETempo(3)
+			clicarETempo(3)
 			wait(0.5)
 		end
 	end
@@ -58,47 +67,40 @@ end
 
 local function iniciarJoalheria()
 	teleportingJoalheria = true
-	local pularProLocal6 = false
 
 	for index, pos in ipairs(locaisJoalheria) do
 		if not teleportingJoalheria then break end
+		player.Character:MoveTo(pos)
+		wait(1)
 
-		-- Se acabou de sair do dinheiro no local 5, ir direto pro local 6
-		if pularProLocal6 and index == 6 then
-			pularProLocal6 = false
-		else
-			player.Character:MoveTo(pos)
-			wait(1)
-
-			-- Segura "E" por 2 segundos, 4 vezes
-			for i = 1, 4 do
-				if not teleportingJoalheria then break end
-				segurarETempo(2)
-				wait(0.5)
-			end
+		for i = 1, 4 do
+			if not teleportingJoalheria then break end
+			clicarETempo(3)
+			wait(0.5)
 		end
 
-		-- Se for o local 5, teleportar para o dinheiro e voltar depois
-		if index == 5 and teleportingJoalheria then
+		-- Se for o local 6, ir pro dinheiro, depois voltar pro local 6
+		if index == 6 and teleportingJoalheria then
 			player.Character:MoveTo(dinheiro)
 			wait(1)
 			for i = 1, 4 do
 				if not teleportingJoalheria then break end
-				segurarETempo(3)
+				clicarETempo(3)
 				wait(0.5)
 			end
-			wait(4) -- Espera 4 segundos antes de continuar no local 6
-			pularProLocal6 = true
+			player.Character:MoveTo(pos)
+			wait(1)
 		end
+
+		wait(2)
 	end
 
-	-- Após o local 7, teleportar novamente para o dinheiro
 	if teleportingJoalheria then
 		player.Character:MoveTo(dinheiro)
 		wait(1)
 		for i = 1, 4 do
 			if not teleportingJoalheria then break end
-			segurarETempo(3)
+			clicarETempo(3)
 			wait(0.5)
 		end
 	end
