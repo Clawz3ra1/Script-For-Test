@@ -60,7 +60,7 @@ local function iniciarBanco()
 			player.Character:MoveTo(compra)
 			wait(1)
 			clicarETempo(5)
-			apertarTecla(Enum.KeyCode.Six) -- Pressiona tecla "6"
+			apertarTecla(Enum.KeyCode.Six)
 			iniciouCompra = true
 		end
 
@@ -142,7 +142,7 @@ local function iniciarCaixas()
 		player.Character:MoveTo(pos)
 		wait(1)
 
-		segurarETempo(12) -- Atualizado para 12 segundos
+		segurarETempo(12)
 		wait(2)
 
 		for i = 1, 4 do
