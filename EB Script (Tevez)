@@ -150,8 +150,8 @@ local function iniciarCaixas()
 		wait(1)
 
 		segurarETempo(12)
-		segurarETempo(3)
-		wait(1)
+		segurarETempo(1)
+		wait(2)
 
 		for i = 1, 4 do
 			if not teleportingCaixas then break end
