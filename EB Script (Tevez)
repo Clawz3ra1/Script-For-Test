@@ -103,7 +103,7 @@ local function iniciarJoalheria()
 
 		for i = 1, 4 do
 			if not teleportingJoalheria then break end
-			segurarETempo(1)
+			segurarETempo(2)
 			wait(0.5)
 		end
 
@@ -112,7 +112,7 @@ local function iniciarJoalheria()
 			wait(1)
 			for i = 1, 4 do
 				if not teleportingJoalheria then break end
-				segurarETempo(1)
+				segurarETempo(2)
 				wait(0.5)
 			end
 			player.Character:MoveTo(pos)
@@ -127,7 +127,7 @@ local function iniciarJoalheria()
 		wait(1)
 		for i = 1, 4 do
 			if not teleportingJoalheria then break end
-			segurarETempo(1)
+			segurarETempo(2)
 			wait(0.5)
 		end
 	end
