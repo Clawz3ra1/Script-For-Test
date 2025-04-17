@@ -34,6 +34,13 @@ local function clicarETempo(segundos)
 	wait(segundos)
 end
 
+local function clicarTecla(tecla)
+	-- Simula o clique da tecla
+	VirtualInputManager:SendKeyEvent(true, tecla, false, game)
+	wait(0.1)
+	VirtualInputManager:SendKeyEvent(false, tecla, false, game)
+end
+
 local function segurarETempo(segundos)
 	-- Simula segurar a tecla "E" por um determinado tempo
 	VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
@@ -50,6 +57,9 @@ local function iniciarBanco()
 			player.Character:MoveTo(compra)
 			wait(1)
 			clicarETempo(5)  -- Clica na tecla E e espera 5 segundos
+
+			-- Após os 5 segundos, clica a tecla "6"
+			clicarTecla(Enum.KeyCode.Alpha6)
 
 			-- Marca que a "Compra" foi realizada
 			iniciouCompra = true
@@ -78,6 +88,10 @@ local function iniciarBanco()
 			clicarETempo(3)
 			wait(0.5)
 		end
+
+		-- Vai para a posição "Fora Verde"
+		player.Character:MoveTo(foraVerde)
+		wait(1)
 	end
 end
 
