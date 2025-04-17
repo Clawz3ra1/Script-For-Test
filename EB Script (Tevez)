@@ -1,66 +1,84 @@
 local player = game:GetService("Players").LocalPlayer
-local teleporting = false
+local teleportingBanco = false
+local teleportingJoalheria = false
 local UserInputService = game:GetService("UserInputService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
--- Posições
+-- Posições do banco
 local foraAreaVerde = Vector3.new(55.4002, 16.2101, 24.0499)
 local dentroAreaVerde = Vector3.new(46.6854, 16.3620, 24.3310)
 local dinheiro = Vector3.new(-593.9904, 31.3066, 348.1586)
 
--- Criar UI
+-- Posições da joalheria
+local locaisJoalheria = {
+	Vector3.new(-125.1737, 32.2903, 263.8453),
+	Vector3.new(-124.7368, 32.2903, 240.6930),
+	Vector3.new(-148.5546, 32.2900, 240.3418),
+	Vector3.new(-148.8893, 32.2522, 263.0065),
+	Vector3.new(-147.9435, 56.4197, 263.0457),
+	Vector3.new(-147.8959, 56.4179, 240.8060),
+	Vector3.new(-124.3770, 56.3516, 262.8491)
+}
+
+-- UI
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "RoubarBancoUI"
+screenGui.Name = "RouboUI"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 100)
-frame.Position = UDim2.new(0.5, -150, 0.1, 0)
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-frame.BorderSizePixel = 0
-frame.Draggable = true
-frame.Active = true
-frame.Parent = screenGui
+local function criarBotao(nome, posY)
+	local frame = Instance.new("Frame")
+	frame.Size = UDim2.new(0, 300, 0, 100)
+	frame.Position = UDim2.new(0.5, -150, 0, posY)
+	frame.BackgroundColor3 = Color3.fromRGB(85, 0, 128) -- Roxo
+	frame.BorderSizePixel = 0
+	frame.Draggable = true
+	frame.Active = true
+	frame.Parent = screenGui
 
--- Cantos arredondados
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 15)
-corner.Parent = frame
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 15)
+	corner.Parent = frame
 
-local label = Instance.new("TextLabel")
-label.Size = UDim2.new(0.7, 0, 1, 0)
-label.Position = UDim2.new(0, 0, 0, 0)
-label.Text = "Roubar Banco"
-label.TextColor3 = Color3.new(1, 1, 1)
-label.BackgroundTransparency = 1
-label.Font = Enum.Font.SourceSansBold
-label.TextScaled = true
-label.Parent = frame
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(0.7, 0, 1, 0)
+	label.Position = UDim2.new(0, 0, 0, 0)
+	label.Text = nome
+	label.TextColor3 = Color3.new(1, 1, 1)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.SourceSansBold
+	label.TextScaled = true
+	label.Parent = frame
 
-local button = Instance.new("TextButton")
-button.Size = UDim2.new(0.3, 0, 1, 0)
-button.Position = UDim2.new(0.7, 0, 0, 0)
-button.Text = "OFF"
-button.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-button.TextColor3 = Color3.new(1, 1, 1)
-button.Font = Enum.Font.SourceSansBold
-button.TextScaled = true
-button.Parent = frame
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0.3, 0, 1, 0)
+	button.Position = UDim2.new(0.7, 0, 0, 0)
+	button.Text = "OFF"
+	button.BackgroundColor3 = Color3.fromRGB(139, 0, 139) -- Rosa escuro
+	button.TextColor3 = Color3.new(1, 1, 1)
+	button.Font = Enum.Font.SourceSansBold
+	button.TextScaled = true
+	button.Parent = frame
 
--- Função de clique automático
-local function clicar(x, y)
-	VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, game, 0)
-	wait(0.05)
-	VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, game, 0)
+	return button
 end
 
--- Sistema de Coleta
+local botaoBanco = criarBotao("Roubar Banco", 50)
+local botaoJoalheria = criarBotao("Roubar Joalheria", 160)
+
+-- Função: Pressionar tecla E por 3 segundos
+local function segurarETempo(tempo)
+	VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+	wait(tempo)
+	VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+end
+
+-- Sistema de Coleta (Banco)
 local function iniciarColeta()
-	while teleporting do
-		-- Teleporta entre fora e dentro da área verde por 5 segundos
+	while teleportingBanco do
+		-- 5 segundos alternando entre posições
 		local startTime = tick()
-		while tick() - startTime < 5 and teleporting do
+		while tick() - startTime < 5 and teleportingBanco do
 			if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
 				player.Character:MoveTo(foraAreaVerde)
 				wait(0.1)
@@ -69,59 +87,59 @@ local function iniciarColeta()
 			end
 		end
 
-		-- Vai até o dinheiro
-		if not teleporting then break end
-		if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-			player.Character:MoveTo(dinheiro)
+		if not teleportingBanco then break end
+
+		-- Teleportar até o "dinheiro"
+		player.Character:MoveTo(dinheiro)
+
+		-- Pressionar E a cada 1 segundo por 5 segundos
+		local pressTime = tick()
+		while tick() - pressTime < 5 and teleportingBanco do
+			segurarETempo(0.1)
+			wait(1)
 		end
-
-		-- Mostrar "Segurando E..."
-		local holdE = Instance.new("BillboardGui")
-		holdE.Size = UDim2.new(0, 100, 0, 50)
-		holdE.StudsOffset = Vector3.new(0, 3, 0)
-		holdE.Adornee = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-		holdE.AlwaysOnTop = true
-		holdE.Parent = screenGui
-
-		local text = Instance.new("TextLabel", holdE)
-		text.Size = UDim2.new(1, 0, 1, 0)
-		text.BackgroundTransparency = 1
-		text.TextScaled = true
-		text.Font = Enum.Font.SourceSansBold
-		text.TextColor3 = Color3.new(1, 1, 0)
-		text.Text = "Segurando E..."
-
-		-- Simular segurar E por 3 segundos
-		VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-		wait(3)
-		VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-
-		holdE:Destroy()
-
-		-- Clica onde está o mouse
-		local mouse = player:GetMouse()
-		clicar(mouse.X, mouse.Y)
-		wait(0.3)
-
-		-- Clica na posição fixa x=293 y=202
-		clicar(293, 202)
-		wait(0.3)
-
-		-- Clica na posição fixa x=-68 y=494
-		clicar(-68, 494)
-		wait(0.3)
 	end
 end
 
--- Botão para ativar/desativar
-button.MouseButton1Click:Connect(function()
-	teleporting = not teleporting
-	if teleporting then
-		button.Text = "ON"
-		button.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+-- Sistema da Joalheria
+local function iniciarJoalheria()
+	for _, pos in ipairs(locaisJoalheria) do
+		if not teleportingJoalheria then break end
+		player.Character:MoveTo(pos)
+		wait(1)
+
+		for i = 1, 4 do
+			if not teleportingJoalheria then break end
+			segurarETempo(3)
+			wait(0.5)
+		end
+
+		wait(2)
+	end
+end
+
+-- Botão do Banco
+botaoBanco.MouseButton1Click:Connect(function()
+	teleportingBanco = not teleportingBanco
+	if teleportingBanco then
+		botaoBanco.Text = "ON"
+		botaoBanco.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
 		coroutine.wrap(iniciarColeta)()
 	else
-		button.Text = "OFF"
-		button.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+		botaoBanco.Text = "OFF"
+		botaoBanco.BackgroundColor3 = Color3.fromRGB(139, 0, 139)
+	end
+end)
+
+-- Botão da Joalheria
+botaoJoalheria.MouseButton1Click:Connect(function()
+	teleportingJoalheria = not teleportingJoalheria
+	if teleportingJoalheria then
+		botaoJoalheria.Text = "ON"
+		botaoJoalheria.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+		coroutine.wrap(iniciarJoalheria)()
+	else
+		botaoJoalheria.Text = "OFF"
+		botaoJoalheria.BackgroundColor3 = Color3.fromRGB(139, 0, 139)
 	end
 end)
