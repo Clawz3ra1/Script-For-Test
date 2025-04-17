@@ -1,0 +1,75 @@
+-- UI Setup
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui", playerGui)
+screenGui.Name = "ContadorUI"
+
+local frame = Instance.new("Frame", screenGui)
+frame.Size = UDim2.new(0, 250, 0, 150)
+frame.Position = UDim2.new(0.5, -125, 0.5, -75)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BorderSizePixel = 0
+
+local textBox = Instance.new("TextBox", frame)
+textBox.Size = UDim2.new(1, -20, 0, 40)
+textBox.Position = UDim2.new(0, 10, 0, 10)
+textBox.PlaceholderText = "Digite o número final"
+textBox.Text = ""
+textBox.ClearTextOnFocus = true
+textBox.Font = Enum.Font.SourceSansBold
+textBox.TextSize = 20
+textBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local button = Instance.new("TextButton", frame)
+button.Size = UDim2.new(1, -20, 0, 40)
+button.Position = UDim2.new(0, 10, 0, 60)
+button.Text = "Começar Contagem"
+button.Font = Enum.Font.SourceSansBold
+button.TextSize = 20
+button.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- Função principal
+local function executarContagem(final)
+	for i = 0, final do
+		-- Enviar mensagem no chat
+		game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(
+			tostring(i == 0 and "ZERO !" or i),
+			"All"
+		)
+
+		-- Simular pressionar tecla 'C' duas vezes
+		keypress(Enum.KeyCode.C)
+		wait(0.1)
+		keypress(Enum.KeyCode.C)
+		wait(0.1)
+
+		-- Girar o personagem 360° rapidamente
+		local character = player.Character or player.CharacterAdded:Wait()
+		local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+		for angle = 0, 360, 90 do
+			humanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(90), 0)
+			wait(0.02)
+		end
+
+		wait(0.5) -- Pequeno intervalo entre os números
+	end
+end
+
+-- Botão clicado
+button.MouseButton1Click:Connect(function()
+	local finalNumero = tonumber(textBox.Text)
+	if finalNumero and finalNumero >= 0 then
+		executarContagem(finalNumero)
+	else
+		textBox.Text = "Insira um número válido!"
+	end
+end)
+
+-- Simular keypress (somente para fins ilustrativos)
+function keypress(key)
+	-- Isso NÃO funciona em LocalScript por segurança do Roblox.
+	-- É só ilustrativo. Jogadores não podem simular teclas reais.
+end
