@@ -8,6 +8,7 @@ local foraVerde = Vector3.new(55.40021514892578, 16.210159301757812, 24.04993629
 local dentroVerde = Vector3.new(46.685447692871094, 16.362083435058594, 24.331085205078125)
 local dinheiro = Vector3.new(-593.990478515625, 31.306697845458984, 348.15869140625)
 local compra = Vector3.new(-919.98876953125, 49.01209259033203, 584.4151000976562)
+local porta = Vector3.new(64.75578308105469, 16.210159301757812, 42.436180114746094)
 
 local locaisJoalheria = {
 	Vector3.new(-125.17372131347656, 32.29037094116211, 263.8453063964844),
@@ -22,6 +23,7 @@ local locaisJoalheria = {
 -- FLAGS
 local teleportingBanco = false
 local teleportingJoalheria = false
+local iniciouCompra = false
 
 -- FUNÇÕES
 local function clicarETempo(segundos)
@@ -32,14 +34,32 @@ local function clicarETempo(segundos)
 	wait(segundos)
 end
 
+local function segurarETempo(segundos)
+	-- Simula segurar a tecla "E" por um determinado tempo
+	VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+	wait(segundos)
+	VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+end
+
 local function iniciarBanco()
 	teleportingBanco = true
 	while teleportingBanco do
-		-- Vai até a localização "Compra" e clica E
-		player.Character:MoveTo(compra)
+		-- Verifica se já iniciou a parte da "Compra"
+		if not iniciouCompra then
+			-- Vai até a localização "Compra" e clica E
+			player.Character:MoveTo(compra)
+			wait(1)
+			clicarETempo(5)  -- Clica na tecla E e espera 5 segundos
+
+			-- Marca que a "Compra" foi realizada
+			iniciouCompra = true
+		end
+
+		-- Vai até a "Porta" e segura o "E" por 15 segundos
+		player.Character:MoveTo(porta)
 		wait(1)
-		clicarETempo(5)  -- Clica na tecla E e espera 5 segundos
-		wait(5)
+		segurarETempo(15)  -- Segura a tecla E por 15 segundos
+		wait(15)
 
 		-- Coleta por 5 segundos
 		local t = tick()
