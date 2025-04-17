@@ -1,109 +1,65 @@
-local player = game:GetService("Players").LocalPlayer
-local teleportingBanco = false
-local teleportingJoalheria = false
-local UserInputService = game:GetService("UserInputService")
+-- SERVIÇO
+local Players = game:GetService("Players")
 local VirtualInputManager = game:GetService("VirtualInputManager")
+local player = Players.LocalPlayer
 
--- Posições do banco
-local foraAreaVerde = Vector3.new(55.4002, 16.2101, 24.0499)
-local dentroAreaVerde = Vector3.new(46.6854, 16.3620, 24.3310)
-local dinheiro = Vector3.new(-593.9904, 31.3066, 348.1586)
+-- POSIÇÕES
+local foraVerde = Vector3.new(55.40021514892578, 16.210159301757812, 24.049936294555664)
+local dentroVerde = Vector3.new(46.685447692871094, 16.362083435058594, 24.331085205078125)
+local dinheiro = Vector3.new(-593.990478515625, 31.306697845458984, 348.15869140625)
 
--- Posições da joalheria
 local locaisJoalheria = {
-	Vector3.new(-125.1737, 32.2903, 263.8453),
-	Vector3.new(-124.7368, 32.2903, 240.6930),
-	Vector3.new(-148.5546, 32.2900, 240.3418),
-	Vector3.new(-148.8893, 32.2522, 263.0065),
-	Vector3.new(-147.9435, 56.4197, 263.0457),
-	Vector3.new(-147.8959, 56.4179, 240.8060),
-	Vector3.new(-124.3770, 56.3516, 262.8491)
+	Vector3.new(-125.17372131347656, 32.29037094116211, 263.8453063964844),
+	Vector3.new(-124.73682403564453, 32.29037094116211, 240.6930389404297),
+	Vector3.new(-148.55467224121094, 32.290042877197266, 240.34182739257812),
+	Vector3.new(-148.8893280029297, 32.25228500366211, 263.00653076171875),
+	Vector3.new(-147.94357299804688, 56.4197998046875, 263.0457763671875),
+	Vector3.new(-147.8959503173828, 56.41799545288086, 240.8060760498047),
+	Vector3.new(-124.3770523071289, 56.35169982910156, 262.84912109375)
 }
 
--- UI
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "RouboUI"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = player:WaitForChild("PlayerGui")
+-- FLAGS
+local teleportingBanco = false
+local teleportingJoalheria = false
 
-local function criarBotao(nome, posY)
-	local frame = Instance.new("Frame")
-	frame.Size = UDim2.new(0, 300, 0, 100)
-	frame.Position = UDim2.new(0.5, -150, 0, posY)
-	frame.BackgroundColor3 = Color3.fromRGB(85, 0, 128) -- Roxo
-	frame.BorderSizePixel = 0
-	frame.Draggable = true
-	frame.Active = true
-	frame.Parent = screenGui
-
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 15)
-	corner.Parent = frame
-
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(0.7, 0, 1, 0)
-	label.Position = UDim2.new(0, 0, 0, 0)
-	label.Text = nome
-	label.TextColor3 = Color3.new(1, 1, 1)
-	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.SourceSansBold
-	label.TextScaled = true
-	label.Parent = frame
-
-	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(0.3, 0, 1, 0)
-	button.Position = UDim2.new(0.7, 0, 0, 0)
-	button.Text = "OFF"
-	button.BackgroundColor3 = Color3.fromRGB(139, 0, 139) -- Rosa escuro
-	button.TextColor3 = Color3.new(1, 1, 1)
-	button.Font = Enum.Font.SourceSansBold
-	button.TextScaled = true
-	button.Parent = frame
-
-	return button
-end
-
-local botaoBanco = criarBotao("Roubar Banco", 50)
-local botaoJoalheria = criarBotao("Roubar Joalheria", 160)
-
--- Função: Pressionar tecla E por 3 segundos
-local function segurarETempo(tempo)
+-- FUNÇÕES
+local function segurarETempo(segundos)
 	VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-	wait(tempo)
+	wait(segundos)
 	VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
 end
 
--- Sistema de Coleta (Banco)
-local function iniciarColeta()
+local function iniciarBanco()
+	teleportingBanco = true
 	while teleportingBanco do
-		-- 5 segundos alternando entre posições
-		local startTime = tick()
-		while tick() - startTime < 5 and teleportingBanco do
-			if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-				player.Character:MoveTo(foraAreaVerde)
-				wait(0.1)
-				player.Character:MoveTo(dentroAreaVerde)
-				wait(0.1)
-			end
+		-- Coleta por 5 segundos
+		local t = tick()
+		while tick() - t < 5 and teleportingBanco do
+			player.Character:MoveTo(foraVerde)
+			wait(0.1)
+			player.Character:MoveTo(dentroVerde)
+			wait(0.1)
 		end
 
-		if not teleportingBanco then break end
-
-		-- Teleportar até o "dinheiro"
+		-- Vai para o dinheiro
 		player.Character:MoveTo(dinheiro)
-
-		-- Pressionar E a cada 1 segundo por 5 segundos
-		local pressTime = tick()
-		while tick() - pressTime < 5 and teleportingBanco do
-			segurarETempo(0.1)
-			wait(1)
+		wait(1)
+		for i = 1, 4 do
+			if not teleportingBanco then break end
+			segurarETempo(3)
+			wait(0.5)
 		end
 	end
 end
 
--- Sistema da Joalheria
+local function pararBanco()
+	teleportingBanco = false
+end
+
 local function iniciarJoalheria()
-	for _, pos in ipairs(locaisJoalheria) do
+	teleportingJoalheria = true
+
+	for index, pos in ipairs(locaisJoalheria) do
 		if not teleportingJoalheria then break end
 		player.Character:MoveTo(pos)
 		wait(1)
@@ -114,32 +70,89 @@ local function iniciarJoalheria()
 			wait(0.5)
 		end
 
+		-- Se for o local 6, ir pro dinheiro, depois voltar pro local 6
+		if index == 6 and teleportingJoalheria then
+			player.Character:MoveTo(dinheiro)
+			wait(1)
+			for i = 1, 4 do
+				if not teleportingJoalheria then break end
+				segurarETempo(3)
+				wait(0.5)
+			end
+			player.Character:MoveTo(pos)
+			wait(1)
+		end
+
 		wait(2)
+	end
+
+	if teleportingJoalheria then
+		player.Character:MoveTo(dinheiro)
+		wait(1)
+		for i = 1, 4 do
+			if not teleportingJoalheria then break end
+			segurarETempo(3)
+			wait(0.5)
+		end
 	end
 end
 
--- Botão do Banco
-botaoBanco.MouseButton1Click:Connect(function()
-	teleportingBanco = not teleportingBanco
-	if teleportingBanco then
-		botaoBanco.Text = "ON"
-		botaoBanco.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
-		coroutine.wrap(iniciarColeta)()
-	else
-		botaoBanco.Text = "OFF"
-		botaoBanco.BackgroundColor3 = Color3.fromRGB(139, 0, 139)
-	end
-end)
+local function pararJoalheria()
+	teleportingJoalheria = false
+end
 
--- Botão da Joalheria
-botaoJoalheria.MouseButton1Click:Connect(function()
-	teleportingJoalheria = not teleportingJoalheria
-	if teleportingJoalheria then
-		botaoJoalheria.Text = "ON"
-		botaoJoalheria.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
-		coroutine.wrap(iniciarJoalheria)()
-	else
-		botaoJoalheria.Text = "OFF"
-		botaoJoalheria.BackgroundColor3 = Color3.fromRGB(139, 0, 139)
-	end
-end)
+-- UI
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.Name = "AutoHeistUI"
+
+local function criarBotao(titulo, posY, callbackAtivar, callbackDesativar)
+	local frame = Instance.new("Frame")
+	frame.Size = UDim2.new(0, 250, 0, 60)
+	frame.Position = UDim2.new(0, 20, 0, posY)
+	frame.BackgroundColor3 = Color3.fromRGB(80, 0, 100)
+	frame.BorderSizePixel = 0
+	frame.BackgroundTransparency = 0.1
+	frame.Parent = screenGui
+	frame.Active = true
+	frame.Draggable = true
+	frame.ClipsDescendants = true
+
+	local texto = Instance.new("TextLabel")
+	texto.Size = UDim2.new(0.7, 0, 1, 0)
+	texto.Position = UDim2.new(0, 10, 0, 0)
+	texto.Text = titulo
+	texto.TextScaled = true
+	texto.TextColor3 = Color3.fromRGB(255, 255, 255)
+	texto.BackgroundTransparency = 1
+	texto.Font = Enum.Font.GothamBold
+	texto.Parent = frame
+
+	local botao = Instance.new("TextButton")
+	botao.Size = UDim2.new(0.2, 0, 0.6, 0)
+	botao.Position = UDim2.new(0.75, 0, 0.2, 0)
+	botao.Text = "OFF"
+	botao.TextScaled = true
+	botao.Font = Enum.Font.GothamBold
+	botao.TextColor3 = Color3.fromRGB(255, 255, 255)
+	botao.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+	botao.BorderSizePixel = 0
+	botao.Parent = frame
+
+	local ativado = false
+
+	botao.MouseButton1Click:Connect(function()
+		ativado = not ativado
+		if ativado then
+			botao.Text = "ON"
+			botao.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+			callbackAtivar()
+		else
+			botao.Text = "OFF"
+			botao.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+			callbackDesativar()
+		end
+	end)
+end
+
+criarBotao("Roubar Banco", 100, iniciarBanco, pararBanco)
+criarBotao("Roubar Joalheria", 180, iniciarJoalheria, pararJoalheria)
