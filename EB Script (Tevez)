@@ -20,58 +20,55 @@ local locaisJoalheria = {
 	Vector3.new(-124.3770523071289, 56.35169982910156, 262.84912109375)
 }
 
+local locaisCaixas = {
+	Vector3.new(116.83747863769531, 31.639814376831055, 491.5913391113281),
+	Vector3.new(-108.35205078125, 31.63986587524414, 139.09959411621094),
+	Vector3.new(-325.6607666015625, 31.375328063964844, 143.38430786132812),
+	Vector3.new(-165.55831909179688, 31.639812469482422, 516.5291137695312)
+}
+
 -- FLAGS
 local teleportingBanco = false
 local teleportingJoalheria = false
+local teleportingCaixas = false
 local iniciouCompra = false
 
 -- FUNÇÕES
 local function clicarETempo(segundos)
-	-- Simula o clique da tecla "E"
 	VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
 	wait(0.1)
 	VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
 	wait(segundos)
 end
 
-local function clicarTecla(tecla)
-	-- Simula o clique da tecla
+local function segurarETempo(segundos)
+	VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+	wait(segundos)
+	VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+end
+
+local function apertarTecla(tecla)
 	VirtualInputManager:SendKeyEvent(true, tecla, false, game)
 	wait(0.1)
 	VirtualInputManager:SendKeyEvent(false, tecla, false, game)
 end
 
-local function segurarETempo(segundos)
-	-- Simula segurar a tecla "E" por um determinado tempo
-	VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-	wait(segundos)
-	VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-end
-
 local function iniciarBanco()
 	teleportingBanco = true
 	while teleportingBanco do
-		-- Verifica se já iniciou a parte da "Compra"
 		if not iniciouCompra then
-			-- Vai até a localização "Compra" e clica E
 			player.Character:MoveTo(compra)
 			wait(1)
-			clicarETempo(5)  -- Clica na tecla E e espera 5 segundos
-
-			-- Após os 5 segundos, clica a tecla "6"
-			clicarTecla(Enum.KeyCode.Alpha6)
-
-			-- Marca que a "Compra" foi realizada
+			clicarETempo(5)
 			iniciouCompra = true
+			apertarTecla(Enum.KeyCode.Six)
 		end
 
-		-- Vai até a "Porta" e segura o "E" por 15 segundos
 		player.Character:MoveTo(porta)
 		wait(1)
-		segurarETempo(15)  -- Segura a tecla E por 15 segundos
+		segurarETempo(15)
 		wait(15)
 
-		-- Coleta por 5 segundos
 		local t = tick()
 		while tick() - t < 5 and teleportingBanco do
 			player.Character:MoveTo(foraVerde)
@@ -80,7 +77,6 @@ local function iniciarBanco()
 			wait(0.1)
 		end
 
-		-- Vai para o dinheiro
 		player.Character:MoveTo(dinheiro)
 		wait(1)
 		for i = 1, 4 do
@@ -88,10 +84,6 @@ local function iniciarBanco()
 			clicarETempo(3)
 			wait(0.5)
 		end
-
-		-- Vai para a posição "Fora Verde"
-		player.Character:MoveTo(foraVerde)
-		wait(1)
 	end
 end
 
@@ -113,7 +105,6 @@ local function iniciarJoalheria()
 			wait(0.5)
 		end
 
-		-- Se for o local 6, ir pro dinheiro, depois voltar pro local 6
 		if index == 6 and teleportingJoalheria then
 			player.Character:MoveTo(dinheiro)
 			wait(1)
@@ -142,6 +133,39 @@ end
 
 local function pararJoalheria()
 	teleportingJoalheria = false
+end
+
+local function iniciarCaixas()
+	teleportingCaixas = true
+
+	for _, pos in ipairs(locaisCaixas) do
+		if not teleportingCaixas then break end
+		player.Character:MoveTo(pos)
+		wait(1)
+
+		segurarETempo(10)
+		wait(2)
+
+		for i = 1, 4 do
+			if not teleportingCaixas then break end
+			segurarETempo(1)
+			wait(1)
+		end
+	end
+
+	if teleportingCaixas then
+		player.Character:MoveTo(dinheiro)
+		wait(1)
+		for i = 1, 4 do
+			if not teleportingCaixas then break end
+			clicarETempo(3)
+			wait(0.5)
+		end
+	end
+end
+
+local function pararCaixas()
+	teleportingCaixas = false
 end
 
 -- UI
@@ -199,3 +223,4 @@ end
 
 criarBotao("Roubar Banco", 100, iniciarBanco, pararBanco)
 criarBotao("Roubar Joalheria", 180, iniciarJoalheria, pararJoalheria)
+criarBotao("Roubar Caixas", 260, iniciarCaixas, pararCaixas)
