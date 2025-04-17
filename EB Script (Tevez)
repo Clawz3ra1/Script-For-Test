@@ -58,20 +58,28 @@ end
 
 local function iniciarJoalheria()
 	teleportingJoalheria = true
+	local pularProLocal6 = false
 
 	for index, pos in ipairs(locaisJoalheria) do
 		if not teleportingJoalheria then break end
-		player.Character:MoveTo(pos)
-		wait(1)
 
-		for i = 1, 4 do
-			if not teleportingJoalheria then break end
-			segurarETempo(3)
-			wait(0.5)
+		-- Se acabou de sair do dinheiro no local 5, ir direto pro local 6
+		if pularProLocal6 and index == 6 then
+			pularProLocal6 = false
+		else
+			player.Character:MoveTo(pos)
+			wait(1)
+
+			-- Segura "E" por 2 segundos, 4 vezes
+			for i = 1, 4 do
+				if not teleportingJoalheria then break end
+				segurarETempo(2)
+				wait(0.5)
+			end
 		end
 
-		-- Se for o local 6, ir pro dinheiro, depois voltar pro local 6
-		if index == 6 and teleportingJoalheria then
+		-- Se for o local 5, teleportar para o dinheiro e voltar depois
+		if index == 5 and teleportingJoalheria then
 			player.Character:MoveTo(dinheiro)
 			wait(1)
 			for i = 1, 4 do
@@ -79,13 +87,12 @@ local function iniciarJoalheria()
 				segurarETempo(3)
 				wait(0.5)
 			end
-			player.Character:MoveTo(pos)
-			wait(1)
+			wait(4) -- Espera 4 segundos antes de continuar no local 6
+			pularProLocal6 = true
 		end
-
-		wait(2)
 	end
 
+	-- Após o local 7, teleportar novamente para o dinheiro
 	if teleportingJoalheria then
 		player.Character:MoveTo(dinheiro)
 		wait(1)
