@@ -1,4 +1,4 @@
--- SERVIÇO
+-- SERVIÇOS
 local Players = game:GetService("Players")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local player = Players.LocalPlayer
@@ -10,6 +10,13 @@ local dinheiro = Vector3.new(-593.990478515625, 31.306697845458984, 348.15869140
 local compra = Vector3.new(-919.98876953125, 49.01209259033203, 584.4151000976562)
 local porta = Vector3.new(64.75578308105469, 16.210159301757812, 42.436180114746094)
 
+local caixas = {
+	Vector3.new(116.83747863769531, 31.639814376831055, 491.5913391113281),
+	Vector3.new(-108.35205078125, 31.63986587524414, 139.09959411621094),
+	Vector3.new(-325.6607666015625, 31.375328063964844, 143.38430786132812),
+	Vector3.new(-165.55831909179688, 31.639812469482422, 516.5291137695312)
+}
+
 local locaisJoalheria = {
 	Vector3.new(-125.17372131347656, 32.29037094116211, 263.8453063964844),
 	Vector3.new(-124.73682403564453, 32.29037094116211, 240.6930389404297),
@@ -20,13 +27,6 @@ local locaisJoalheria = {
 	Vector3.new(-124.3770523071289, 56.35169982910156, 262.84912109375)
 }
 
-local locaisCaixas = {
-	Vector3.new(116.83747863769531, 31.639814376831055, 491.5913391113281),
-	Vector3.new(-108.35205078125, 31.63986587524414, 139.09959411621094),
-	Vector3.new(-325.6607666015625, 31.375328063964844, 143.38430786132812),
-	Vector3.new(-165.55831909179688, 31.639812469482422, 516.5291137695312)
-}
-
 -- FLAGS
 local teleportingBanco = false
 local teleportingJoalheria = false
@@ -34,7 +34,7 @@ local teleportingCaixas = false
 local iniciouCompra = false
 local entrouPorta = false
 
--- FUNÇÕES
+-- FUNÇÕES DE INPUT
 local function clicarETempo(segundos)
 	VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
 	wait(0.1)
@@ -54,8 +54,12 @@ local function apertarTecla(tecla)
 	VirtualInputManager:SendKeyEvent(false, tecla, false, game)
 end
 
+-- SISTEMA BANCO
 local function iniciarBanco()
 	teleportingBanco = true
+	iniciouCompra = false
+	entrouPorta = false
+
 	while teleportingBanco do
 		if not iniciouCompra then
 			player.Character:MoveTo(compra)
@@ -94,25 +98,23 @@ local function pararBanco()
 	teleportingBanco = false
 end
 
+-- SISTEMA JOALHERIA
 local function iniciarJoalheria()
 	teleportingJoalheria = true
+
 	for index, pos in ipairs(locaisJoalheria) do
 		if not teleportingJoalheria then break end
 		player.Character:MoveTo(pos)
 		wait(1)
 
-		for i = 1, 4 do
-			if not teleportingJoalheria then break end
-			segurarETempo(2)
-			wait(0.5)
-		end
+		segurarETempo(3)
 
 		if index == 6 and teleportingJoalheria then
 			player.Character:MoveTo(dinheiro)
 			wait(1)
 			for i = 1, 4 do
 				if not teleportingJoalheria then break end
-				segurarETempo(2)
+				clicarETempo(3)
 				wait(0.5)
 			end
 			player.Character:MoveTo(pos)
@@ -127,7 +129,7 @@ local function iniciarJoalheria()
 		wait(1)
 		for i = 1, 4 do
 			if not teleportingJoalheria then break end
-			segurarETempo(2)
+			clicarETempo(3)
 			wait(0.5)
 		end
 	end
@@ -137,40 +139,38 @@ local function pararJoalheria()
 	teleportingJoalheria = false
 end
 
+-- SISTEMA CAIXAS
 local function iniciarCaixas()
 	teleportingCaixas = true
 
-	for _, pos in ipairs(locaisCaixas) do
+	for _, pos in ipairs(caixas) do
 		if not teleportingCaixas then break end
+
 		player.Character:MoveTo(pos)
 		wait(1)
 
 		segurarETempo(12)
+		segurarETempo(3)
 		wait(2)
 
 		for i = 1, 4 do
 			if not teleportingCaixas then break end
 			segurarETempo(1)
-			wait(1)
-		end
-	end
-
-	if teleportingCaixas then
-		player.Character:MoveTo(dinheiro)
-		wait(1)
-		for i = 1, 4 do
-			if not teleportingCaixas then break end
-			clicarETempo(3)
 			wait(0.5)
 		end
+
+		wait(1)
 	end
+
+	player.Character:MoveTo(dinheiro)
+	wait(1)
 end
 
 local function pararCaixas()
 	teleportingCaixas = false
 end
 
--- UI
+-- INTERFACE
 local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 screenGui.Name = "AutoHeistUI"
 
