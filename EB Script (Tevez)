@@ -47,12 +47,6 @@ local function segurarETempo(segundos)
 	VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
 end
 
-local function apertarTecla(tecla)
-	VirtualInputManager:SendKeyEvent(true, tecla, false, game)
-	wait(0.1)
-	VirtualInputManager:SendKeyEvent(false, tecla, false, game)
-end
-
 local function iniciarBanco()
 	teleportingBanco = true
 	while teleportingBanco do
@@ -61,13 +55,15 @@ local function iniciarBanco()
 			wait(1)
 			clicarETempo(5)
 			iniciouCompra = true
-			apertarTecla(Enum.KeyCode.Six)
+
+			VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Six, false, game)
+			wait(0.1)
+			VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Six, false, game)
 		end
 
 		player.Character:MoveTo(porta)
 		wait(1)
 		segurarETempo(15)
-		wait(15)
 
 		local t = tick()
 		while tick() - t < 5 and teleportingBanco do
@@ -143,7 +139,7 @@ local function iniciarCaixas()
 		player.Character:MoveTo(pos)
 		wait(1)
 
-		segurarETempo(10)
+		segurarETempo(11) -- Alterado de 10 para 11
 		wait(2)
 
 		for i = 1, 4 do
