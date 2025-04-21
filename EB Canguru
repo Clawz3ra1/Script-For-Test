@@ -1,75 +1,152 @@
--- UI Setup
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
+-- Variável para controlar se deve parar
+local pararContagem = false
+
+-- Números por extenso (pode ser expandido)
+local numerosExtenso = {
+	[0] = "ZERO!",
+	[1] = "UM",
+	[2] = "DOIS",
+	[3] = "TRÊS",
+	[4] = "QUATRO",
+	[5] = "CINCO",
+	[6] = "SEIS",
+	[7] = "SETE",
+	[8] = "OITO",
+	[9] = "NOVE",
+	[10] = "DEZ",
+	[11] = "ONZE",
+	[12] = "DOZE",
+	[13] = "TREZE",
+	[14] = "QUATORZE",
+	[15] = "QUINZE",
+	[16] = "DEZESSEIS",
+	[17] = "DEZESSETE",
+	[18] = "DEZOITO",
+	[19] = "DEZENOVE",
+	[20] = "VINTE",
+	[30] = "TRINTA",
+	[40] = "QUARENTA",
+	[50] = "CINQUENTA",
+	[60] = "SESSENTA",
+	[70] = "SETENTA",
+	[80] = "OITENTA",
+	[90] = "NOVENTA",
+	[100] = "CEM"
+}
+
+local function numeroPorExtenso(n)
+	if numerosExtenso[n] then
+		return numerosExtenso[n]
+	elseif n < 100 then
+		local dezenas = math.floor(n / 10) * 10
+		local unidades = n % 10
+		return numerosExtenso[dezenas] .. " E " .. numerosExtenso[unidades]
+	else
+		return tostring(n)
+	end
+end
+
+-- Criar UI
 local screenGui = Instance.new("ScreenGui", playerGui)
 screenGui.Name = "ContadorUI"
 
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 250, 0, 150)
-frame.Position = UDim2.new(0.5, -125, 0.5, -75)
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.Size = UDim2.new(0, 300, 0, 200)
+frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+frame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
 frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.BackgroundTransparency = 0.1
 
+-- Arredondar UI
+local uicorner = Instance.new("UICorner", frame)
+uicorner.CornerRadius = UDim.new(0, 12)
+
+-- Caixa de texto
 local textBox = Instance.new("TextBox", frame)
-textBox.Size = UDim2.new(1, -20, 0, 40)
-textBox.Position = UDim2.new(0, 10, 0, 10)
+textBox.Size = UDim2.new(1, -40, 0, 40)
+textBox.Position = UDim2.new(0, 20, 0, 15)
 textBox.PlaceholderText = "Digite o número final"
-textBox.Text = ""
-textBox.ClearTextOnFocus = true
-textBox.Font = Enum.Font.SourceSansBold
+textBox.Font = Enum.Font.GothamBold
 textBox.TextSize = 20
-textBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+textBox.Text = ""
+textBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
 textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 
+local corner1 = Instance.new("UICorner", textBox)
+corner1.CornerRadius = UDim.new(0, 10)
+
+-- Botão de começar
 local button = Instance.new("TextButton", frame)
-button.Size = UDim2.new(1, -20, 0, 40)
-button.Position = UDim2.new(0, 10, 0, 60)
-button.Text = "Começar Contagem"
-button.Font = Enum.Font.SourceSansBold
-button.TextSize = 20
+button.Size = UDim2.new(1, -40, 0, 40)
+button.Position = UDim2.new(0, 20, 0, 65)
+button.Text = "COMEÇAR CANGURUS"
+button.Font = Enum.Font.GothamBold
+button.TextSize = 18
 button.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 button.TextColor3 = Color3.fromRGB(255, 255, 255)
 
--- Função principal
+local corner2 = Instance.new("UICorner", button)
+corner2.CornerRadius = UDim.new(0, 10)
+
+-- Botão de parar
+local pararBtn = Instance.new("TextButton", frame)
+pararBtn.Size = UDim2.new(1, -40, 0, 40)
+pararBtn.Position = UDim2.new(0, 20, 0, 115)
+pararBtn.Text = "PARAR OS CANGURUS"
+pararBtn.Font = Enum.Font.GothamBold
+pararBtn.TextSize = 18
+pararBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+pararBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local corner3 = Instance.new("UICorner", pararBtn)
+corner3.CornerRadius = UDim.new(0, 10)
+
+-- Função de contagem
 local function executarContagem(final)
+	pararContagem = false
 	for i = 0, final do
-		-- Enviar mensagem no chat
-		game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(
-			tostring(i == 0 and "ZERO !" or i),
-			"All"
-		)
+		if pararContagem then break end
 
-		-- Simular pressionar tecla 'C' duas vezes
-		keypress(Enum.KeyCode.C)
+		local texto = numeroPorExtenso(i)
+		game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(texto, "All")
+
+		wait(0.2)
+
+		-- Simular duplo "C"
+		-- (Aqui apenas simbólico)
+		print("Pressionando C")
 		wait(0.1)
-		keypress(Enum.KeyCode.C)
+		print("Pressionando C")
 		wait(0.1)
 
-		-- Girar o personagem 360° rapidamente
+		-- Girar 360° com shift lock
 		local character = player.Character or player.CharacterAdded:Wait()
-		local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+		local root = character:WaitForChild("HumanoidRootPart")
 		for angle = 0, 360, 90 do
-			humanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(90), 0)
+			if pararContagem then break end
+			root.CFrame *= CFrame.Angles(0, math.rad(90), 0)
 			wait(0.02)
 		end
 
-		wait(0.5) -- Pequeno intervalo entre os números
+		wait(0.5)
 	end
 end
 
--- Botão clicado
+-- Botões
 button.MouseButton1Click:Connect(function()
-	local finalNumero = tonumber(textBox.Text)
-	if finalNumero and finalNumero >= 0 then
-		executarContagem(finalNumero)
+	local numero = tonumber(textBox.Text)
+	if numero and numero >= 0 then
+		executarContagem(numero)
 	else
-		textBox.Text = "Insira um número válido!"
+		textBox.Text = "Número inválido!"
 	end
 end)
 
--- Simular keypress (somente para fins ilustrativos)
-function keypress(key)
-	-- Isso NÃO funciona em LocalScript por segurança do Roblox.
-	-- É só ilustrativo. Jogadores não podem simular teclas reais.
-end
+pararBtn.MouseButton1Click:Connect(function()
+	pararContagem = true
+end)
