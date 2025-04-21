@@ -1,0 +1,99 @@
+-- UI Setup automática
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui", playerGui)
+screenGui.Name = "HitboxUI"
+
+local frame = Instance.new("Frame", screenGui)
+frame.Size = UDim2.new(0, 200, 0, 120)
+frame.Position = UDim2.new(0.5, -100, 0.1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.BorderSizePixel = 0
+frame.Visible = true
+
+local ativarBtn = Instance.new("TextButton", frame)
+ativarBtn.Size = UDim2.new(1, -20, 0, 40)
+ativarBtn.Position = UDim2.new(0, 10, 0, 10)
+ativarBtn.Text = "Ativar Hitbox"
+ativarBtn.BackgroundColor3 = Color3.fromRGB(60, 180, 75)
+ativarBtn.TextColor3 = Color3.new(1, 1, 1)
+ativarBtn.Font = Enum.Font.GothamBold
+ativarBtn.TextSize = 14
+ativarBtn.BorderSizePixel = 0
+
+local desativarBtn = Instance.new("TextButton", frame)
+desativarBtn.Size = UDim2.new(1, -20, 0, 40)
+desativarBtn.Position = UDim2.new(0, 10, 0, 65)
+desativarBtn.Text = "Desativar Hitbox"
+desativarBtn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+desativarBtn.TextColor3 = Color3.new(1, 1, 1)
+desativarBtn.Font = Enum.Font.GothamBold
+desativarBtn.TextSize = 14
+desativarBtn.BorderSizePixel = 0
+
+-- Variáveis
+local hitboxParts = {}
+local isActive = false
+
+-- Função para criar ou remover caixas de hitbox
+local function updateHitbox(active)
+	isActive = active
+
+	-- Limpa caixas anteriores
+	for _, part in pairs(hitboxParts) do
+		if part and part.Parent then
+			part:Destroy()
+		end
+	end
+	table.clear(hitboxParts)
+
+	if not active then return end
+
+	for _, plr in pairs(game.Players:GetPlayers()) do
+		if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+			local root = plr.Character.HumanoidRootPart
+
+			local box = Instance.new("Part")
+			box.Anchored = true
+			box.CanCollide = false
+			box.Transparency = 0.6
+			box.Color = Color3.fromRGB(150, 150, 150)
+			box.Size = root.Size * 1.25
+			box.CFrame = root.CFrame
+			box.Name = "HitboxVisual"
+			box.Parent = workspace
+
+			table.insert(hitboxParts, box)
+
+			-- Atualizador de posição
+			task.spawn(function()
+				while isActive and box and box.Parent do
+					if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+						box.CFrame = plr.Character.HumanoidRootPart.CFrame
+					end
+					task.wait(0.05)
+				end
+			end)
+		end
+	end
+end
+
+-- Botões
+ativarBtn.MouseButton1Click:Connect(function()
+	updateHitbox(true)
+end)
+
+desativarBtn.MouseButton1Click:Connect(function()
+	updateHitbox(false)
+end)
+
+-- Atualizar hitboxes quando novos players entrarem
+game.Players.PlayerAdded:Connect(function(plr)
+	plr.CharacterAdded:Connect(function()
+		if isActive then
+			task.wait(1)
+			updateHitbox(true)
+		end
+	end)
+end)
