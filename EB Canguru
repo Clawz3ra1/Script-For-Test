@@ -1,152 +1,127 @@
+-- UI + Lógica do sistema dos "cangurus até mil"
 local player = game.Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local uis = game:GetService("UserInputService")
+local runService = game:GetService("RunService")
 
--- Variável para controlar se deve parar
-local pararContagem = false
-
--- Números por extenso (pode ser expandido)
-local numerosExtenso = {
-	[0] = "ZERO!",
-	[1] = "UM",
-	[2] = "DOIS",
-	[3] = "TRÊS",
-	[4] = "QUATRO",
-	[5] = "CINCO",
-	[6] = "SEIS",
-	[7] = "SETE",
-	[8] = "OITO",
-	[9] = "NOVE",
-	[10] = "DEZ",
-	[11] = "ONZE",
-	[12] = "DOZE",
-	[13] = "TREZE",
-	[14] = "QUATORZE",
-	[15] = "QUINZE",
-	[16] = "DEZESSEIS",
-	[17] = "DEZESSETE",
-	[18] = "DEZOITO",
-	[19] = "DEZENOVE",
-	[20] = "VINTE",
-	[30] = "TRINTA",
-	[40] = "QUARENTA",
-	[50] = "CINQUENTA",
-	[60] = "SESSENTA",
-	[70] = "SETENTA",
-	[80] = "OITENTA",
-	[90] = "NOVENTA",
-	[100] = "CEM"
-}
-
-local function numeroPorExtenso(n)
-	if numerosExtenso[n] then
-		return numerosExtenso[n]
-	elseif n < 100 then
-		local dezenas = math.floor(n / 10) * 10
-		local unidades = n % 10
-		return numerosExtenso[dezenas] .. " E " .. numerosExtenso[unidades]
-	else
-		return tostring(n)
-	end
-end
-
--- Criar UI
-local screenGui = Instance.new("ScreenGui", playerGui)
-screenGui.Name = "ContadorUI"
+-- UI Setup
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.Name = "CanguruGui"
+screenGui.ResetOnSpawn = false
 
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 300, 0, 200)
-frame.Position = UDim2.new(0.5, -150, 0.5, -100)
-frame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+frame.Size = UDim2.new(0, 200, 0, 130)
+frame.Position = UDim2.new(0.5, -100, 0.5, -65)
+frame.BackgroundColor3 = Color3.fromRGB(60, 60, 90)
+frame.BackgroundTransparency = 0.1
 frame.BorderSizePixel = 0
+frame.ClipsDescendants = true
 frame.Active = true
 frame.Draggable = true
-frame.BackgroundTransparency = 0.1
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.SizeConstraint = Enum.SizeConstraint.RelativeXY
+frame.BackgroundTransparency = 0.05
+frame:TweenSize(UDim2.new(0, 200, 0, 130), "Out", "Quad", 0.3)
 
--- Arredondar UI
 local uicorner = Instance.new("UICorner", frame)
 uicorner.CornerRadius = UDim.new(0, 12)
 
--- Caixa de texto
-local textBox = Instance.new("TextBox", frame)
-textBox.Size = UDim2.new(1, -40, 0, 40)
-textBox.Position = UDim2.new(0, 20, 0, 15)
-textBox.PlaceholderText = "Digite o número final"
-textBox.Font = Enum.Font.GothamBold
-textBox.TextSize = 20
-textBox.Text = ""
-textBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+local startBtn = Instance.new("TextButton", frame)
+startBtn.Size = UDim2.new(0.8, 0, 0.3, 0)
+startBtn.Position = UDim2.new(0.1, 0, 0.2, 0)
+startBtn.Text = "Começar Cangurus"
+startBtn.BackgroundColor3 = Color3.fromRGB(40, 120, 90)
+startBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", startBtn).CornerRadius = UDim.new(0, 10)
 
-local corner1 = Instance.new("UICorner", textBox)
-corner1.CornerRadius = UDim.new(0, 10)
+local stopBtn = Instance.new("TextButton", frame)
+stopBtn.Size = UDim2.new(0.8, 0, 0.3, 0)
+stopBtn.Position = UDim2.new(0.1, 0, 0.6, 0)
+stopBtn.Text = "Parar Cangurus"
+stopBtn.BackgroundColor3 = Color3.fromRGB(160, 50, 50)
+stopBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", stopBtn).CornerRadius = UDim.new(0, 10)
 
--- Botão de começar
-local button = Instance.new("TextButton", frame)
-button.Size = UDim2.new(1, -40, 0, 40)
-button.Position = UDim2.new(0, 20, 0, 65)
-button.Text = "COMEÇAR CANGURUS"
-button.Font = Enum.Font.GothamBold
-button.TextSize = 18
-button.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-button.TextColor3 = Color3.fromRGB(255, 255, 255)
+-- Variáveis de controle
+local executando = false
 
-local corner2 = Instance.new("UICorner", button)
-corner2.CornerRadius = UDim.new(0, 10)
+-- Função para converter número em texto (simplificada até 1000)
+local function numeroPorExtenso(n)
+	local unidades = { [0]="zero", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove" }
+	local especiais = { "dez", "onze", "doze", "treze", "quatorze", "quinze", "dezesseis", "dezessete", "dezoito", "dezenove" }
+	local dezenas = { "", "", "vinte", "trinta", "quarenta", "cinquenta", "sessenta", "setenta", "oitenta", "noventa" }
+	local centenas = { "", "cento", "duzentos", "trezentos", "quatrocentos", "quinhentos", "seiscentos", "setecentos", "oitocentos", "novecentos" }
 
--- Botão de parar
-local pararBtn = Instance.new("TextButton", frame)
-pararBtn.Size = UDim2.new(1, -40, 0, 40)
-pararBtn.Position = UDim2.new(0, 20, 0, 115)
-pararBtn.Text = "PARAR OS CANGURUS"
-pararBtn.Font = Enum.Font.GothamBold
-pararBtn.TextSize = 18
-pararBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
-pararBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	if n == 100 then return "cem" end
+	if n == 1000 then return "mil" end
 
-local corner3 = Instance.new("UICorner", pararBtn)
-corner3.CornerRadius = UDim.new(0, 10)
+	local c = math.floor(n / 100)
+	local d = math.floor((n % 100) / 10)
+	local u = n % 10
 
--- Função de contagem
-local function executarContagem(final)
-	pararContagem = false
-	for i = 0, final do
-		if pararContagem then break end
+	local resultado = ""
 
-		local texto = numeroPorExtenso(i)
-		game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(texto, "All")
+	if c > 0 then
+		resultado = centenas[c]
+	end
 
-		wait(0.2)
+	if d == 1 then
+		resultado = resultado ~= "" and resultado .. " e " or ""
+		resultado = resultado .. especiais[u + 1]
+	elseif d > 1 then
+		resultado = resultado ~= "" and resultado .. " e " or ""
+		resultado = resultado .. dezenas[d]
+		if u > 0 then
+			resultado = resultado .. " e " .. unidades[u]
+		end
+	elseif u > 0 or n == 0 then
+		resultado = resultado ~= "" and resultado .. " e " or ""
+		resultado = resultado .. unidades[u]
+	end
 
-		-- Simular duplo "C"
-		-- (Aqui apenas simbólico)
-		print("Pressionando C")
+	return resultado
+end
+
+-- Ação de Canguru
+local function fazerCangurus()
+	executando = true
+	for i = 0, 1000 do
+		if not executando then break end
+
+		-- Envia mensagem no chat
+		local mensagem = numeroPorExtenso(i):upper() .. "!"
+		game.ReplicatedStorage:WaitForChild("DefaultChatSystemChatEvents")
+			:WaitForChild("SayMessageRequest"):FireServer(mensagem, "All")
+
+		-- Pressiona 'C' duas vezes
+		uis.InputBegan:Fire({KeyCode = Enum.KeyCode.C, UserInputType = Enum.UserInputType.Keyboard})
 		wait(0.1)
-		print("Pressionando C")
-		wait(0.1)
+		uis.InputBegan:Fire({KeyCode = Enum.KeyCode.C, UserInputType = Enum.UserInputType.Keyboard})
 
-		-- Girar 360° com shift lock
-		local character = player.Character or player.CharacterAdded:Wait()
-		local root = character:WaitForChild("HumanoidRootPart")
-		for angle = 0, 360, 90 do
-			if pararContagem then break end
-			root.CFrame *= CFrame.Angles(0, math.rad(90), 0)
-			wait(0.02)
+		-- Faz um 360 com shift lock
+		local root = character:FindFirstChild("HumanoidRootPart")
+		if root then
+			local angulo = 0
+			local passo = math.pi / 16
+			while angulo < 2 * math.pi do
+				root.CFrame = root.CFrame * CFrame.Angles(0, passo, 0)
+				angulo = angulo + passo
+				task.wait()
+			end
 		end
 
-		wait(0.5)
+		task.wait(0.3) -- intervalo entre ações
 	end
 end
 
--- Botões
-button.MouseButton1Click:Connect(function()
-	local numero = tonumber(textBox.Text)
-	if numero and numero >= 0 then
-		executarContagem(numero)
-	else
-		textBox.Text = "Número inválido!"
+-- Conectar botões
+startBtn.MouseButton1Click:Connect(function()
+	if not executando then
+		coroutine.wrap(fazerCangurus)()
 	end
 end)
 
-pararBtn.MouseButton1Click:Connect(function()
-	pararContagem = true
+stopBtn.MouseButton1Click:Connect(function()
+	executando = false
 end)
