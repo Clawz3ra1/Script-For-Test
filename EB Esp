@@ -1,18 +1,31 @@
--- ESP Profissional por ChatGPT
+-- ESP com UI arredondada e arrastável
 
+local toggleButton = script.Parent:WaitForChild("ToggleESPButton")
+local espEnabled = true
+
+-- Color presets
+local onColor = Color3.fromRGB(0, 255, 127)
+local offColor = Color3.fromRGB(255, 85, 85)
+
+-- Setup botão
+toggleButton.BackgroundColor3 = onColor
+toggleButton.Text = "Desativar ESP"
+
+-- Referência ao LocalPlayer
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-
-local localPlayer = Players.LocalPlayer
 local camera = workspace.CurrentCamera
+local localPlayer = Players.LocalPlayer
 
--- Tabela para armazenar ESPs ativos
+-- Tabela de ESPs
 local ESPs = {}
 
--- Função para criar ESP
+-- Toggle global (usado no RenderStepped)
+_G.ESP_Enabled = true
+
+-- Criar ESP
 local function createESP(player)
-	if player == localPlayer then return end
-	if ESPs[player] then return end
+	if player == localPlayer or ESPs[player] then return end
 
 	local box = Drawing.new("Square")
 	box.Visible = false
@@ -42,13 +55,12 @@ local function createESP(player)
 	}
 
 	player.CharacterAdded:Connect(function()
-		-- Reset ESP ao renascer
 		wait(1)
 		createESP(player)
 	end)
 end
 
--- Função para remover ESP
+-- Remover ESP
 local function removeESP(player)
 	if ESPs[player] then
 		for _, drawing in pairs(ESPs[player]) do
@@ -58,7 +70,7 @@ local function removeESP(player)
 	end
 end
 
--- Atualiza os ESPs
+-- Atualização dos ESPs
 RunService.RenderStepped:Connect(function()
 	for player, esp in pairs(ESPs) do
 		local character = player.Character
@@ -66,7 +78,7 @@ RunService.RenderStepped:Connect(function()
 		local head = character and character:FindFirstChild("Head")
 		local humanoid = character and character:FindFirstChild("Humanoid")
 
-		if hrp and head and humanoid and humanoid.Health > 0 then
+		if hrp and head and humanoid and humanoid.Health > 0 and _G.ESP_Enabled then
 			local pos, onScreen = camera:WorldToViewportPoint(hrp.Position)
 			local headPos = camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
 			local size = (camera:WorldToViewportPoint(hrp.Position - Vector3.new(2, 3, 0)) - camera:WorldToViewportPoint(hrp.Position + Vector3.new(2, 3, 0))).Magnitude
@@ -94,11 +106,21 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
--- Criar ESP para todos os jogadores
+-- Criar ESPs existentes
 for _, player in pairs(Players:GetPlayers()) do
 	createESP(player)
 end
-
--- Atualizar ESP quando jogadores entrarem ou saírem
 Players.PlayerAdded:Connect(createESP)
 Players.PlayerRemoving:Connect(removeESP)
+
+-- Toggle do botão
+toggleButton.MouseButton1Click:Connect(function()
+	_G.ESP_Enabled = not _G.ESP_Enabled
+	if _G.ESP_Enabled then
+		toggleButton.Text = "Desativar ESP"
+		toggleButton.BackgroundColor3 = onColor
+	else
+		toggleButton.Text = "Ativar ESP"
+		toggleButton.BackgroundColor3 = offColor
+	end
+end)
