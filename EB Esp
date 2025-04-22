@@ -1,0 +1,104 @@
+-- ESP Profissional por ChatGPT
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local localPlayer = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+-- Tabela para armazenar ESPs ativos
+local ESPs = {}
+
+-- Função para criar ESP
+local function createESP(player)
+	if player == localPlayer then return end
+	if ESPs[player] then return end
+
+	local box = Drawing.new("Square")
+	box.Visible = false
+	box.Color = Color3.fromRGB(0, 255, 0)
+	box.Thickness = 2
+	box.Transparency = 1
+	box.Filled = false
+
+	local nameText = Drawing.new("Text")
+	nameText.Visible = false
+	nameText.Color = Color3.fromRGB(255, 255, 255)
+	nameText.Size = 16
+	nameText.Center = true
+	nameText.Outline = true
+	nameText.Font = 2
+
+	local tracer = Drawing.new("Line")
+	tracer.Visible = false
+	tracer.Color = Color3.fromRGB(0, 255, 0)
+	tracer.Thickness = 1
+	tracer.Transparency = 1
+
+	ESPs[player] = {
+		Box = box,
+		Name = nameText,
+		Tracer = tracer,
+	}
+
+	player.CharacterAdded:Connect(function()
+		-- Reset ESP ao renascer
+		wait(1)
+		createESP(player)
+	end)
+end
+
+-- Função para remover ESP
+local function removeESP(player)
+	if ESPs[player] then
+		for _, drawing in pairs(ESPs[player]) do
+			drawing:Remove()
+		end
+		ESPs[player] = nil
+	end
+end
+
+-- Atualiza os ESPs
+RunService.RenderStepped:Connect(function()
+	for player, esp in pairs(ESPs) do
+		local character = player.Character
+		local hrp = character and character:FindFirstChild("HumanoidRootPart")
+		local head = character and character:FindFirstChild("Head")
+		local humanoid = character and character:FindFirstChild("Humanoid")
+
+		if hrp and head and humanoid and humanoid.Health > 0 then
+			local pos, onScreen = camera:WorldToViewportPoint(hrp.Position)
+			local headPos = camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
+			local size = (camera:WorldToViewportPoint(hrp.Position - Vector3.new(2, 3, 0)) - camera:WorldToViewportPoint(hrp.Position + Vector3.new(2, 3, 0))).Magnitude
+
+			if onScreen then
+				esp.Box.Visible = true
+				esp.Box.Size = Vector2.new(size, size * 2)
+				esp.Box.Position = Vector2.new(pos.X - size / 2, pos.Y - size)
+				esp.Name.Visible = true
+				esp.Name.Text = player.Name
+				esp.Name.Position = Vector2.new(headPos.X, headPos.Y - 15)
+				esp.Tracer.Visible = true
+				esp.Tracer.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y)
+				esp.Tracer.To = Vector2.new(pos.X, pos.Y)
+			else
+				esp.Box.Visible = false
+				esp.Name.Visible = false
+				esp.Tracer.Visible = false
+			end
+		else
+			esp.Box.Visible = false
+			esp.Name.Visible = false
+			esp.Tracer.Visible = false
+		end
+	end
+end)
+
+-- Criar ESP para todos os jogadores
+for _, player in pairs(Players:GetPlayers()) do
+	createESP(player)
+end
+
+-- Atualizar ESP quando jogadores entrarem ou saírem
+Players.PlayerAdded:Connect(createESP)
+Players.PlayerRemoving:Connect(removeESP)
